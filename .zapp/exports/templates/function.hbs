@@ -1,0 +1,19 @@
+import { IData } from '../shared';
+
+declare interface I{{{case name 'pascal'}}}Request {
+  {{#each params}}
+  {{{@key}}}: {{{type}}};
+  {{/each}}
+}
+
+declare interface I{{{case name 'pascal'}}}Response {}
+
+export type {{{case name 'pascal'}}}Type = (
+  req?: I{{{case name 'pascal'}}}Request
+) => Promise<I{{{case name 'pascal'}}}Response>;
+
+export async function {{{case name 'camel'}}}(data: IData) {
+  return async (req?: I{{{case name 'pascal'}}}Request): Promise<I{{{case name 'pascal'}}}Response> => {
+    {{{jsx handler 2}}}
+  };
+}

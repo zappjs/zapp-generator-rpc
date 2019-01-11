@@ -1,0 +1,3 @@
+build: tsc
+start: node dist/scripts/start
+test: 'mocha -r ts-node/register src/**/*.spec.t'

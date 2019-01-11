@@ -1,0 +1,14 @@
+type: object
+additionalProperties:
+  type: object
+  properties:
+    handler:
+      mode: typescript
+      type: code
+    params:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          type:
+            type: string

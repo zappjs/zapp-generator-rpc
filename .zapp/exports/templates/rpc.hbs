@@ -1,0 +1,105 @@
+import * as bodyParser from 'body-parser';
+import * as express from 'express';
+import { Express } from 'express';
+
+import {
+  {{#each functions}}
+  {{{case @key 'pascal'}}}Type,
+  {{/each}}
+  {{#each functions}}
+  {{{case @key 'camel'}}}{{#unless @last}},{{/unless}}
+  {{/each}}
+} from './functions';
+
+import {
+  {{#each models}}
+  {{{case @key 'pascal'}}}Model{{#unless @last}},{{/unless}}
+  {{/each}}
+} from './models';
+
+import { IData, handler } from './shared';
+
+const port = process.env.RPC_PORT || 8080;
+
+interface IRpcOpts {
+  shouldPersist: boolean;
+}
+
+export class Rpc {
+  data: IData = {};
+  express: Express;
+
+  shouldPersist = false;
+
+  {{#each functions}}
+  {{{case @key 'camel'}}}: {{{case @key 'pascal'}}}Type;
+  {{/each}}
+
+  constructor(opts?: IRpcOpts) {
+    if (opts && opts.shouldPersist !== undefined) {
+      this.shouldPersist = opts.shouldPersist;
+    }
+  }
+
+  async load() {
+    // load data
+    this.data = {
+      {{#each models}}
+      {{@key}}: await new {{{case @key 'pascal'}}}Model().load(){{#unless @last}},{{/unless}}
+      {{/each}}
+    };
+
+    // connect each function with loaded data
+    {{#each functions}}
+    this.{{{case @key 'camel'}}} = await {{{case @key 'camel'}}}(this.data);
+    {{/each}}
+
+    return this;
+  }
+
+  start(cb?: Function) {
+    this.express = express();
+
+    this.express.use(bodyParser.json({ limit: '50mb' }));
+    this.express.use((req, res, next) => {
+      const origin = req.get('origin');
+      if (origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      }
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET,PATCH,PUT,DELETE,POST,OPTIONS'
+      );
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    });
+
+    this.express.get('/', (req, res) => {
+      res.status(200).send({
+        functions: [
+          {{#each functions}}
+          '{{{case @key 'camel'}}}'{{#unless @last}},{{/unless}}
+          {{/each}}
+        ]
+      });
+    });
+
+    {{#each functions}}
+    this.express.post('/{{{case @key 'camel'}}}', handler(this.{{{case @key 'camel'}}}));
+    {{/each}}
+
+    const server = this.express.listen(port, cb);
+
+    if (this.shouldPersist) {
+      setInterval(async () => {
+        {{#each models}}
+        await this.data.{{{@key}}}.save();
+        {{/each}}
+      }, 1000);
+    }
+
+    return server;
+  }
+}

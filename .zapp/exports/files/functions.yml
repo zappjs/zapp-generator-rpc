@@ -1,0 +1,12 @@
+template: function
+engine: handlebars
+filename:
+  template: "src/functions/{{{case name 'camel'}}}.ts"
+  engine: handlebars
+  mapping:
+    name: '@key'
+iterator: functions
+mapping:
+  name: '@key'
+  handler: ./handler
+  params: ./params

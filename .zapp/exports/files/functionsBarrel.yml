@@ -1,0 +1,5 @@
+filename: src/functions/index.ts
+engine: handlebars
+template: functionsBarrel
+mapping:
+  functions: /functions

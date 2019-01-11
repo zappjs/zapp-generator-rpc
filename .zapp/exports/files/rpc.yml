@@ -1,0 +1,6 @@
+template: rpc
+engine: handlebars
+filename: src/rpc.ts
+mapping:
+  functions: /functions
+  models: /models
